@@ -4,11 +4,11 @@
     background: #f4f7fb;
 }
 
-.workspace-page {
+.board-page {
     padding: 32px;
 }
 
-.workspace-page__header {
+.board-page__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -36,13 +36,13 @@
     }
 }
 
-.workspace-grid {
+.board-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 16px;
 }
 
-.workspace-card {
+.board-card {
     background: #ffffff;
     border: 1px solid #e7ebf3;
     border-radius: 16px;
@@ -59,14 +59,17 @@
         color: #5f6b7a;
     }
 
-    button {
+    a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         height: 40px;
-        border: 0;
-        border-radius: 10px;
         padding: 0 14px;
-        background: #dbe4f0;
-        color: #3c495a;
-        cursor: not-allowed;
+        border-radius: 10px;
+        background: #111827;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
     }
 }
 

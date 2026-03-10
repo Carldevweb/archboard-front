@@ -1,1 +1,38 @@
-<p>login-page works!</p>
+<section class="login-page">
+    <div class="login-card">
+        <div class="login-card__header">
+            <h1>ArchBoard</h1>
+            <p>Connecte-toi pour accéder à tes workspaces.</p>
+        </div>
+
+        <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+            <div class="form-field">
+                <label for="email">Email</label>
+                <input id="email" type="email" formControlName="email" placeholder="ton@email.com" />
+
+                @if (form.controls.email.touched && form.controls.email.invalid) {
+                <small class="form-error">Adresse email invalide.</small>
+                }
+            </div>
+
+            <div class="form-field">
+                <label for="password">Mot de passe</label>
+                <input id="password" type="password" formControlName="password" placeholder="********" />
+
+                @if (form.controls.password.touched && form.controls.password.invalid) {
+                <small class="form-error">Le mot de passe est requis.</small>
+                }
+            </div>
+
+            @if (errorMessage()) {
+            <div class="error-box">
+                {{ errorMessage() }}
+            </div>
+            }
+
+            <button type="submit" [disabled]="isSubmitting()">
+                {{ isSubmitting() ? 'Connexion...' : 'Se connecter' }}
+            </button>
+        </form>
+    </div>
+</section>

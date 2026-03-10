@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Workspace } from './workspace';
+import { Workspace } from './workspace.service';
 
 describe('Workspace', () => {
   let service: Workspace;

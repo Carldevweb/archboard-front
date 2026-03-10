@@ -1,0 +1,10 @@
+<section class="board-column">
+    <header class="board-column__header">
+        <h2>{{ column().name }}</h2>
+        <span>{{ cardsCount() }}</span>
+    </header>
+
+    <div class="board-column__content">
+        <ng-content></ng-content>
+    </div>
+</section>
