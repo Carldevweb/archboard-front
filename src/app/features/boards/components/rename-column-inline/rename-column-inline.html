@@ -1,0 +1,13 @@
+<div class="rename-column-inline" (keydown.escape)="onCancel()">
+    <input #nameInput type="text" [ngModel]="draftName" (ngModelChange)="onNameChange($event)"
+        (keydown.enter)="onSave()" maxlength="120" />
+
+    <div class="rename-column-inline__actions">
+        <button type="button" (click)="onSave()" [disabled]="isSubmitting()">
+            Save
+        </button>
+        <button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+            Cancel
+        </button>
+    </div>
+</div>

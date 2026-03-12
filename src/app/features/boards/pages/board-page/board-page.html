@@ -5,108 +5,76 @@
             <p>Board #{{ boardId() }}</p>
         </div>
 
-        <button type="button" (click)="goBack()">Retour</button>
+        <button type="button" (click)="goBack()">Back</button>
     </header>
 
     @if (isLoading()) {
-    <p>Chargement du board...</p>
+    <p>Loading board...</p>
     } @else if (errorMessage()) {
     <div class="error-box">
         {{ errorMessage() }}
     </div>
-    } @else if (columns().length === 0) {
-    <p>Aucune colonne trouvée pour ce board.</p>
-    } @else {
-    <div class="board-page__content">
-        @for (column of columns(); track column.id) {
-        <app-board-column [column]="column">
-            <div class="board-page__dropzone" cdkDropList [id]="getDropListId(column.id)"
-                [cdkDropListData]="column.cards" [cdkDropListConnectedTo]="dropListIds()"
-                (cdkDropListDropped)="dropCard($event, column)">
-                @if (column.cards.length === 0) {
-                <p class="board-column__empty">Aucune card</p>
-                } @else {
-                @for (card of column.cards; track card.id) {
-                <div class="board-page__card-wrapper" cdkDrag [cdkDragData]="card">
-                    <div (click)="openEditCardModal(card)">
-                        <app-board-card [card]="card"></app-board-card>
-                    </div>
-                </div>
-                }
-                }
-            </div>
-
-            @if (creatingCardColumnId() === column.id) {
-            <div class="board-page__create-card-form" (keydown.escape)="cancelCreateCard()">
-                <input #createCardTitleInput type="text" [ngModel]="newCardTitle()"
-                    (ngModelChange)="updateNewCardTitle($event)" (keydown.enter)="createCard(column)"
-                    placeholder="Titre de la card" />
-
-                <textarea [ngModel]="newCardDescription()" (ngModelChange)="updateNewCardDescription($event)"
-                    placeholder="Description (optionnelle)" rows="3"></textarea>
-
-                <div class="board-page__create-card-actions">
-                    <button type="button" (click)="createCard(column)" [disabled]="isCreatingCard()">
-                        Créer
-                    </button>
-
-                    <button type="button" (click)="cancelCreateCard()" [disabled]="isCreatingCard()">
-                        Annuler
-                    </button>
-                </div>
-            </div>
-            } @else {
-            <button type="button" class="board-page__add-card-button" (click)="openCreateCardForm(column.id)">
-                + Ajouter une card
-            </button>
-            }
-        </app-board-column>
-        }
-    </div>
     }
 
-    @if (editingCard()) {
-    <div class="board-page__modal-backdrop" (click)="closeEditCardModal()">
-        <div class="board-page__modal" (click)="$event.stopPropagation()">
-            <div class="board-page__modal-header">
-                <h2>Modifier la card</h2>
-                <button type="button" (click)="closeEditCardModal()">×</button>
+    <div class="board-page__layout">
+        <div class="board-page__content" cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="columns()"
+            (cdkDropListDropped)="dropColumn($event)">
+            @for (column of columns(); track column.id) {
+            <div class="board-page__column-wrapper" cdkDrag>
+                <app-board-column [column]="column" [isRenaming]="renamingColumnId() === column.id"
+                    [isUpdating]="isUpdatingColumn()" (startRename)="startRenameColumn(column.id)"
+                    (saveRename)="saveRenameColumn(column, $event)" (cancelRename)="cancelRenameColumn()"
+                    (deleteColumn)="deleteColumn(column)">
+                    <div class="board-page__dropzone" cdkDropList [id]="getDropListId(column.id)"
+                        [cdkDropListData]="column.cards" [cdkDropListConnectedTo]="dropListIds()"
+                        (cdkDropListDropped)="dropCard($event, column)">
+                        @if (column.cards.length === 0) {
+                        <p class="board-column__empty">No cards</p>
+                        } @else {
+                        @for (card of column.cards; track card.id) {
+                        <div class="board-page__card-wrapper" cdkDrag [cdkDragData]="card">
+                            <div (click)="openEditCardModal(card)">
+                                <app-board-card [card]="card"></app-board-card>
+                            </div>
+                        </div>
+                        }
+                        }
+                    </div>
+
+                    @if (creatingCardColumnId() === column.id) {
+                    <app-create-card-inline [isSubmitting]="isCreatingCard()" (createCard)="createCard(column, $event)"
+                        (cancel)="cancelCreateCard()" />
+                    } @else {
+                    <button type="button" class="board-page__add-card-button" (click)="openCreateCardForm(column.id)">
+                        + Add a card
+                    </button>
+                    }
+                </app-board-column>
             </div>
+            }
 
-            <div class="board-page__modal-body">
-                <label>
-                    <span>Titre</span>
-                    <input type="text" [ngModel]="editCardTitle()" (ngModelChange)="updateEditCardTitle($event)"
-                        maxlength="200" />
-                </label>
-
-                <label>
-                    <span>Description</span>
-                    <textarea [ngModel]="editCardDescription()" (ngModelChange)="updateEditCardDescription($event)"
-                        rows="6"></textarea>
-                </label>
-            </div>
-
-            <div class="board-page__modal-actions" tabindex="0">
-
-                <button type="button" class="danger" (click)="deleteCard()" [disabled]="isUpdatingCard()">
-                    Supprimer
+            <div class="board-page__column-creator">
+                @if (creatingColumn()) {
+                <app-add-column-inline [isSubmitting]="isCreatingColumn()" (createColumn)="createColumn($event)"
+                    (cancel)="cancelCreateColumn()" />
+                } @else {
+                <button type="button" class="board-page__add-column-button" (click)="openCreateColumnForm()">
+                    + Add a column
                 </button>
-
-                <div class="board-page__modal-actions-right">
-
-                    <button type="button" (click)="saveEditedCard()" [disabled]="isUpdatingCard()">
-                        Enregistrer
-                    </button>
-
-                    <button type="button" (click)="closeEditCardModal()" [disabled]="isUpdatingCard()">
-                        Annuler
-                    </button>
-
-                </div>
-
+                }
             </div>
         </div>
+
+        <app-activity-feed [activities]="activities()" [isLoading]="isLoadingActivities()" />
     </div>
+
+    @if (!isLoading() && !errorMessage() && columns().length === 0) {
+    <p>No columns found for this board.</p>
+    }
+
+    @if (editingCard(); as card) {
+    <app-edit-card-modal [isSubmitting]="isUpdatingCard()" [initialTitle]="card.title"
+        [initialDescription]="card.description ?? ''" (save)="saveEditedCard($event)" (deleteCard)="deleteCard()"
+        (cancel)="closeEditCardModal()" />
     }
 </section>

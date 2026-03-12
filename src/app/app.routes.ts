@@ -7,6 +7,9 @@ export const routes: Routes = [
     pathMatch: 'full',
     redirectTo: 'workspaces',
   },
+
+  // AUTH (public)
+
   {
     path: 'login',
     loadComponent: () =>
@@ -14,14 +17,42 @@ export const routes: Routes = [
         (m) => m.LoginPage
       ),
   },
+
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/auth/pages/register-page/register-page').then(
+        (m) => m.RegisterPageComponent
+      ),
+  },
+
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import(
+        './features/auth/pages/forgot-password-page/forgot-password-page'
+      ).then((m) => m.ForgotPasswordPageComponent),
+  },
+
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/pages/reset-password-page/reset-password-page').then(
+        (m) => m.ResetPasswordPageComponent
+      ),
+  },
+
+  // APP (protected)
+
   {
     path: 'workspaces',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/workspaces/pages/workspace-list-page/workspace-list-page').then(
-        (m) => m.WorkspaceListPage
-      ),
+      import(
+        './features/workspaces/pages/workspace-list-page/workspace-list-page'
+      ).then((m) => m.WorkspaceListPage),
   },
+
   {
     path: 'workspaces/:workspaceId/boards',
     canActivate: [authGuard],
@@ -30,6 +61,7 @@ export const routes: Routes = [
         (m) => m.BoardListPage
       ),
   },
+
   {
     path: 'boards/:boardId',
     canActivate: [authGuard],
@@ -38,6 +70,7 @@ export const routes: Routes = [
         (m) => m.BoardPage
       ),
   },
+
   {
     path: '**',
     redirectTo: 'workspaces',

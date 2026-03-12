@@ -1,0 +1,17 @@
+<div class="create-card-inline" (keydown.escape)="onCancel()">
+    <input #titleInput type="text" class="create-card-inline__input" [ngModel]="draftTitle"
+        (ngModelChange)="onTitleChange($event)" (keydown.enter)="onSubmit()" placeholder="Card title" maxlength="200" />
+
+    <textarea class="create-card-inline__textarea" [ngModel]="draftDescription"
+        (ngModelChange)="onDescriptionChange($event)" placeholder="Description (optional)" rows="3"></textarea>
+
+    <div class="create-card-inline__actions">
+        <button type="button" class="create-card-inline__submit" (click)="onSubmit()" [disabled]="isSubmitting()">
+            Create
+        </button>
+
+        <button type="button" class="create-card-inline__cancel" (click)="onCancel()" [disabled]="isSubmitting()">
+            Cancel
+        </button>
+    </div>
+</div>

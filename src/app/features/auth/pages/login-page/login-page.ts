@@ -41,7 +41,7 @@ export class LoginPage {
 
     this.authService.login(payload).subscribe({
       next: () => {
-        this.authService.getMe().subscribe({
+        this.authService.me().subscribe({
           next: () => {
             this.isSubmitting.set(false);
             this.router.navigate(['/workspaces']);

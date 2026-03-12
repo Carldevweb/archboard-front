@@ -1,0 +1,58 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <h1>Create account</h1>
+
+    @if (errorMessage()) {
+      <div class="auth-message auth-message--error">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="auth-message auth-message--success">
+        {{ successMessage() }}
+      </div>
+    }
+
+    <div class="auth-form">
+      <label>
+        <span>Email</span>
+        <input
+          type="email"
+          [ngModel]="email()"
+          (ngModelChange)="updateEmail($event)"
+          autocomplete="email"
+        />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          [ngModel]="password()"
+          (ngModelChange)="updatePassword($event)"
+          autocomplete="new-password"
+        />
+      </label>
+
+      <label>
+        <span>Confirm password</span>
+        <input
+          type="password"
+          [ngModel]="confirmPassword()"
+          (ngModelChange)="updateConfirmPassword($event)"
+          autocomplete="new-password"
+          (keydown.enter)="register()"
+        />
+      </label>
+
+      <button type="button" (click)="register()" [disabled]="isSubmitting()">
+        Create account
+      </button>
+    </div>
+
+    <p class="auth-links">
+      <a routerLink="/login">Back to sign in</a>
+    </p>
+  </div>
+</section>

@@ -1,0 +1,55 @@
+:host {
+    display: block;
+}
+
+.column-actions-menu {
+    position: relative;
+}
+
+.column-actions-menu__trigger {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.column-actions-menu__trigger:hover {
+    background: rgba(9, 30, 66, 0.08);
+}
+
+.column-actions-menu__panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #d0d4db;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(9, 30, 66, 0.15);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.column-actions-menu__panel button {
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.column-actions-menu__panel button:hover {
+    background: rgba(9, 30, 66, 0.08);
+}
+
+.column-actions-menu__panel button.danger {
+    color: #c9372c;
+}

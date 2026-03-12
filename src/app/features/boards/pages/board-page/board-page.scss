@@ -1,96 +1,42 @@
+.board-page__layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.board-page__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.board-page__column-wrapper {
+  flex: 0 0 320px;
+  width: 320px;
+}
+
+.board-page__column-creator {
+  flex: 0 0 320px;
+  width: 320px;
+}
+
 .board-page__add-card-button {
   width: 100%;
   margin-top: 12px;
 }
 
-.board-page__create-card-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.board-page__create-card-form input,
-.board-page__create-card-form textarea {
+.board-page__add-column-button {
   width: 100%;
-  box-sizing: border-box;
-}
-
-.board-page__create-card-actions {
-  display: flex;
-  gap: 8px;
 }
 
 .board-page__card-wrapper {
   display: block;
 }
 
-.board-page__card-wrapper > div {
+.board-page__card-wrapper>div {
   cursor: pointer;
-}
-
-.board-page__modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  z-index: 1000;
-}
-
-.board-page__modal {
-  width: 100%;
-  max-width: 560px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-sizing: border-box;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-}
-
-.board-page__modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.board-page__modal-header h2 {
-  margin: 0;
-}
-
-.board-page__modal-header button {
-  font-size: 22px;
-  line-height: 1;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.board-page__modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.board-page__modal-body label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.board-page__modal-body input,
-.board-page__modal-body textarea {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.board-page__modal-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 16px;
 }

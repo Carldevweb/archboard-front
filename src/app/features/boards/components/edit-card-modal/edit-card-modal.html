@@ -1,0 +1,40 @@
+<div class="edit-card-modal__backdrop" (click)="onBackdropClick()">
+    <div class="edit-card-modal" (click)="stopPropagation($event)">
+        <div class="edit-card-modal__header">
+            <h2>Edit card</h2>
+            <button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+                ×
+            </button>
+        </div>
+
+        <div class="edit-card-modal__body">
+            <label>
+                <span>Title</span>
+                <input #titleInput type="text" [ngModel]="draftTitle" (ngModelChange)="onTitleChange($event)"
+                    (keydown.enter)="onSave()" maxlength="200" />
+            </label>
+
+            <label>
+                <span>Description</span>
+                <textarea [ngModel]="draftDescription" (ngModelChange)="onDescriptionChange($event)"
+                    rows="6"></textarea>
+            </label>
+        </div>
+
+        <div class="edit-card-modal__actions">
+            <button type="button" class="danger" (click)="onDelete()" [disabled]="isSubmitting()">
+                Delete
+            </button>
+
+            <div class="edit-card-modal__actions-right">
+                <button type="button" (click)="onSave()" [disabled]="isSubmitting()">
+                    Save
+                </button>
+
+                <button type="button" (click)="onCancel()" [disabled]="isSubmitting()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

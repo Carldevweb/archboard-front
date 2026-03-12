@@ -1,0 +1,22 @@
+<section class="activity-feed">
+    <header class="activity-feed__header">
+        <h2>Activity</h2>
+    </header>
+
+    @if (isLoading()) {
+    <p class="activity-feed__state">Loading activity...</p>
+    } @else if (activities().length === 0) {
+    <p class="activity-feed__state">No activity yet.</p>
+    } @else {
+    <ul class="activity-feed__list">
+        @for (activity of activities(); track activity.id) {
+        <li class="activity-feed__item">
+            <p class="activity-feed__message">{{ activity.message }}</p>
+            <time class="activity-feed__date">
+                {{ activity.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </time>
+        </li>
+        }
+    </ul>
+    }
+</section>

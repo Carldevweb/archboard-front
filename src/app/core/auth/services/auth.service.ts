@@ -1,50 +1,98 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
-import { CurrentUser } from '../models/current-user.model';
-import { LoginRequest } from '../models/login-request.model';
-import { LoginResponse } from '../models/login-response.model';
-import { TokenService } from './token.service';
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface AuthResponse {
+  token: string;
+}
+
+export interface MeResponse {
+  id: number;
+  email: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly tokenService = inject(TokenService);
+  private readonly router = inject(Router);
 
-  readonly currentUser = signal<CurrentUser | null>(null);
-  readonly isAuthenticated = signal<boolean>(this.tokenService.hasToken());
+  private readonly tokenKey = 'archboard_token';
 
-  login(payload: LoginRequest): Observable<LoginResponse> {
+  readonly isAuthenticated = signal<boolean>(this.hasToken());
+
+  login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<LoginResponse>(`${environment.apiUrl}/auth/login`, payload)
+      .post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload)
       .pipe(
         tap((response) => {
-          this.tokenService.setToken(response.accessToken);
-          this.isAuthenticated.set(true);
+          this.setToken(response.token);
         })
       );
   }
 
-  getMe(): Observable<CurrentUser> {
-    return this.http.get<CurrentUser>(`${environment.apiUrl}/me`).pipe(
-      tap((user) => {
-        this.currentUser.set(user);
-        this.isAuthenticated.set(true);
-      })
+  register(payload: RegisterRequest): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/register`, payload);
+  }
+
+  forgotPassword(payload: ForgotPasswordRequest): Observable<void> {
+    return this.http.post<void>(
+      `${environment.apiUrl}/auth/forgot-password`,
+      payload
     );
   }
 
+  resetPassword(payload: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(
+      `${environment.apiUrl}/auth/reset-password`,
+      payload
+    );
+  }
+
+  me(): Observable<MeResponse> {
+    return this.http.get<MeResponse>(`${environment.apiUrl}/me`);
+  }
+
   logout(): void {
-    this.tokenService.clearToken();
-    this.currentUser.set(null);
+    localStorage.removeItem(this.tokenKey);
     this.isAuthenticated.set(false);
+    this.router.navigate(['/login']);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
   hasToken(): boolean {
-    return this.tokenService.hasToken();
+    return !!this.getToken();
+  }
+
+  private setToken(token: string): void {
+    localStorage.setItem(this.tokenKey, token);
+    this.isAuthenticated.set(true);
   }
 }

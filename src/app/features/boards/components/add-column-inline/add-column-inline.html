@@ -1,0 +1,14 @@
+<div class="add-column-inline" (keydown.escape)="onCancel()">
+    <input #nameInput type="text" class="add-column-inline__input" [ngModel]="draftName"
+        (ngModelChange)="onNameChange($event)" (keydown.enter)="onSubmit()" placeholder="Column name" maxlength="120" />
+
+    <div class="add-column-inline__actions">
+        <button type="button" class="add-column-inline__submit" (click)="onSubmit()" [disabled]="isSubmitting()">
+            Create column
+        </button>
+
+        <button type="button" class="add-column-inline__cancel" (click)="onCancel()" [disabled]="isSubmitting()">
+            Cancel
+        </button>
+    </div>
+</div>

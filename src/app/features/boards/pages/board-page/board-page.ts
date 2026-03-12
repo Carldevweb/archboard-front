@@ -1,14 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnInit,
-  computed,
-  inject,
-  signal,
-  viewChild,
-  ElementRef,
-} from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   CdkDrag,
@@ -17,25 +8,36 @@ import {
   moveItemInArray,
   transferArrayItem,
 } from '@angular/cdk/drag-drop';
-import { forkJoin } from 'rxjs';
 
+import { ActivityFeedComponent } from '../../components/activity-feed/activity-feed';
 import { BoardColumnComponent } from '../../components/board-column/board-column';
 import { BoardCardComponent } from '../../components/board-card/board-card';
+import { AddColumnInlineComponent } from '../../components/add-column-inline/add-column-inline';
+import {
+  CreateCardInlineComponent,
+  CreateCardPayload,
+} from '../../components/create-card-inline/create-card-inline';
+import {
+  EditCardModalComponent,
+  EditCardPayload,
+} from '../../components/edit-card-modal/edit-card-modal';
 import { BoardCard } from '../../models/board-card.model';
 import { BoardColumn } from '../../models/board-column.model';
-import { BoardCardService } from '../../services/board-card.service';
-import { BoardColumnService } from '../../services/board-column.service';
+import { BoardStore } from '../../store/board.store';
 
 @Component({
   selector: 'app-board-page',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     CdkDropList,
     CdkDrag,
+    ActivityFeedComponent,
     BoardColumnComponent,
     BoardCardComponent,
+    AddColumnInlineComponent,
+    CreateCardInlineComponent,
+    EditCardModalComponent,
   ],
   templateUrl: './board-page.html',
   styleUrl: './board-page.scss',
@@ -43,319 +45,333 @@ import { BoardColumnService } from '../../services/board-column.service';
 export class BoardPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly columnService = inject(BoardColumnService);
-  private readonly cardService = inject(BoardCardService);
 
-  readonly createCardTitleInput = viewChild<ElementRef<HTMLInputElement>>('createCardTitleInput');
+  readonly store = inject(BoardStore);
 
-  readonly boardId = signal<number | null>(null);
-  readonly isLoading = signal(true);
-  readonly errorMessage = signal<string | null>(null);
-  readonly columns = signal<BoardColumn[]>([]);
+  readonly boardId = computed(() => this.store.boardId());
+  readonly isLoading = computed(() => this.store.isLoading());
+  readonly errorMessage = computed(() => this.store.errorMessage());
+  readonly columns = computed(() => this.store.columns());
+  readonly activities = computed(() => this.store.activities());
+  readonly isLoadingActivities = computed(() => this.store.isLoadingActivities());
+
+  readonly creatingColumn = signal(false);
+  readonly isCreatingColumn = signal(false);
+
+  readonly renamingColumnId = signal<number | null>(null);
+  readonly isUpdatingColumn = signal(false);
 
   readonly creatingCardColumnId = signal<number | null>(null);
-  readonly newCardTitle = signal('');
-  readonly newCardDescription = signal('');
   readonly isCreatingCard = signal(false);
 
   readonly editingCard = signal<BoardCard | null>(null);
-  readonly editCardTitle = signal('');
-  readonly editCardDescription = signal('');
   readonly isUpdatingCard = signal(false);
 
   readonly dropListIds = computed(() =>
     this.columns().map((column) => this.getDropListId(column.id))
   );
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     const rawBoardId = this.route.snapshot.paramMap.get('boardId');
     const boardId = Number(rawBoardId);
 
     if (!rawBoardId || Number.isNaN(boardId)) {
-      this.errorMessage.set('Board invalide.');
-      this.isLoading.set(false);
+      this.store.errorMessage.set('Invalid board.');
+      this.store.isLoading.set(false);
       return;
     }
 
-    this.boardId.set(boardId);
-    this.loadBoard(boardId);
-  }
-
-  loadBoard(boardId: number): void {
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-
-    this.columnService.getByBoard(boardId).subscribe({
-      next: (columns: BoardColumn[]) => {
-        const sortedColumns = [...columns].sort((a, b) => a.position - b.position);
-
-        if (sortedColumns.length === 0) {
-          this.columns.set([]);
-          this.isLoading.set(false);
-          return;
-        }
-
-        const cardRequests = sortedColumns.map((column) =>
-          this.cardService.getByColumn(column.id)
-        );
-
-        forkJoin(cardRequests).subscribe({
-          next: (cardsResults: BoardCard[][]) => {
-            const hydratedColumns: BoardColumn[] = sortedColumns.map((column, index) => ({
-              ...column,
-              cards: [...cardsResults[index]].sort((a, b) => a.position - b.position),
-            }));
-
-            this.columns.set(hydratedColumns);
-            this.isLoading.set(false);
-          },
-          error: () => {
-            this.errorMessage.set('Impossible de charger les cards du board.');
-            this.isLoading.set(false);
-          },
-        });
-      },
-      error: () => {
-        this.errorMessage.set('Impossible de charger les colonnes du board.');
-        this.isLoading.set(false);
-      },
-    });
+    await this.store.loadBoard(boardId);
   }
 
   getDropListId(columnId: number): string {
     return `board-column-drop-list-${columnId}`;
   }
 
-  openCreateCardForm(columnId: number): void {
-    this.creatingCardColumnId.set(columnId);
-    this.newCardTitle.set('');
-    this.newCardDescription.set('');
-    this.errorMessage.set(null);
-
-    queueMicrotask(() => {
-      this.createCardTitleInput()?.nativeElement.focus();
-    });
+  openCreateColumnForm(): void {
+    this.creatingColumn.set(true);
+    this.store.errorMessage.set(null);
   }
 
-  cancelCreateCard(): void {
-    this.creatingCardColumnId.set(null);
-    this.newCardTitle.set('');
-    this.newCardDescription.set('');
-    this.isCreatingCard.set(false);
+  cancelCreateColumn(): void {
+    this.creatingColumn.set(false);
+    this.isCreatingColumn.set(false);
   }
 
-  updateNewCardTitle(value: string): void {
-    this.newCardTitle.set(value);
-  }
+  async createColumn(name: string): Promise<void> {
+    const trimmedName = name.trim();
 
-  updateNewCardDescription(value: string): void {
-    this.newCardDescription.set(value);
-  }
-
-  createCard(column: BoardColumn): void {
-    const title = this.newCardTitle().trim();
-    const description = this.newCardDescription().trim();
-
-    if (!title || this.isCreatingCard()) {
-      if (!title) {
-        this.errorMessage.set('Le titre de la card est requis.');
+    if (!trimmedName || this.isCreatingColumn()) {
+      if (!trimmedName) {
+        this.store.errorMessage.set('Column name is required.');
       }
       return;
     }
 
+    this.isCreatingColumn.set(true);
+    this.store.errorMessage.set(null);
+
+    const success = await this.store.createColumn(trimmedName);
+
+    if (success) {
+      this.cancelCreateColumn();
+      return;
+    }
+
+    this.isCreatingColumn.set(false);
+  }
+
+  startRenameColumn(columnId: number): void {
+    this.renamingColumnId.set(columnId);
+    this.store.errorMessage.set(null);
+  }
+
+  cancelRenameColumn(): void {
+    this.renamingColumnId.set(null);
+    this.isUpdatingColumn.set(false);
+  }
+
+  async saveRenameColumn(column: BoardColumn, name: string): Promise<void> {
+    const trimmedName = name.trim();
+
+    if (!trimmedName || this.isUpdatingColumn()) {
+      if (!trimmedName) {
+        this.store.errorMessage.set('Column name is required.');
+      }
+      return;
+    }
+
+    this.isUpdatingColumn.set(true);
+    this.store.errorMessage.set(null);
+
+    const success = await this.store.updateColumnName(column.id, trimmedName);
+
+    if (success) {
+      this.cancelRenameColumn();
+      return;
+    }
+
+    this.isUpdatingColumn.set(false);
+  }
+
+  async deleteColumn(column: BoardColumn): Promise<void> {
+    if (this.isUpdatingColumn()) {
+      return;
+    }
+
+    const confirmed = confirm(`Delete column "${column.name}"?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.isUpdatingColumn.set(true);
+    this.store.errorMessage.set(null);
+
+    const success = await this.store.deleteColumn(column.id);
+
+    if (success) {
+      if (this.renamingColumnId() === column.id) {
+        this.renamingColumnId.set(null);
+      }
+
+      if (this.creatingCardColumnId() === column.id) {
+        this.creatingCardColumnId.set(null);
+      }
+
+      this.isUpdatingColumn.set(false);
+      return;
+    }
+
+    this.isUpdatingColumn.set(false);
+  }
+
+  openCreateCardForm(columnId: number): void {
+    this.creatingCardColumnId.set(columnId);
+    this.store.errorMessage.set(null);
+  }
+
+  cancelCreateCard(): void {
+    this.creatingCardColumnId.set(null);
+    this.isCreatingCard.set(false);
+  }
+
+  async createCard(
+    column: BoardColumn,
+    payload: CreateCardPayload
+  ): Promise<void> {
+    if (this.isCreatingCard()) {
+      return;
+    }
+
+    const title = payload.title.trim();
+    const description = payload.description?.trim();
+
+    if (!title) {
+      this.store.errorMessage.set('Card title is required.');
+      return;
+    }
+
     this.isCreatingCard.set(true);
-    this.errorMessage.set(null);
+    this.store.errorMessage.set(null);
 
-    this.cardService
-      .createCard(column.id, {
-        title,
-        description: description || undefined,
-      })
-      .subscribe({
-        next: (createdCard) => {
-          const updatedColumns = this.columns().map((currentColumn) => {
-            if (currentColumn.id !== column.id) {
-              return currentColumn;
-            }
+    const success = await this.store.createCard(
+      column.id,
+      title,
+      description || undefined
+    );
 
-            return {
-              ...currentColumn,
-              cards: [...currentColumn.cards, createdCard],
-            };
-          });
+    if (success) {
+      this.cancelCreateCard();
+      return;
+    }
 
-          this.columns.set(updatedColumns);
-          this.cancelCreateCard();
-        },
-        error: () => {
-          this.errorMessage.set('La création de la card a échoué.');
-          this.isCreatingCard.set(false);
-        },
-      });
+    this.isCreatingCard.set(false);
   }
 
   openEditCardModal(card: BoardCard): void {
     this.editingCard.set({ ...card });
-    this.editCardTitle.set(card.title);
-    this.editCardDescription.set(card.description ?? '');
-    this.errorMessage.set(null);
+    this.store.errorMessage.set(null);
   }
 
   closeEditCardModal(): void {
     this.editingCard.set(null);
-    this.editCardTitle.set('');
-    this.editCardDescription.set('');
     this.isUpdatingCard.set(false);
   }
 
-  updateEditCardTitle(value: string): void {
-    this.editCardTitle.set(value);
-  }
-
-  updateEditCardDescription(value: string): void {
-    this.editCardDescription.set(value);
-  }
-
-  saveEditedCard(): void {
+  async saveEditedCard(payload: EditCardPayload): Promise<void> {
     const card = this.editingCard();
-    if (!card) {
+
+    if (!card || this.isUpdatingCard()) {
       return;
     }
 
-    const title = this.editCardTitle().trim();
-    const description = this.editCardDescription().trim();
+    const title = payload.title.trim();
+    const description = payload.description?.trim();
 
     if (!title) {
-      this.errorMessage.set('Le titre de la card est requis.');
+      this.store.errorMessage.set('Card title is required.');
       return;
     }
 
     this.isUpdatingCard.set(true);
-    this.errorMessage.set(null);
+    this.store.errorMessage.set(null);
 
-    this.cardService
-      .updateCard(card.id, {
-        title,
-        description: description || undefined,
-      })
-      .subscribe({
-        next: (updatedCard) => {
-          const updatedColumns = this.columns().map((column) => ({
-            ...column,
-            cards: column.cards.map((currentCard) =>
-              currentCard.id === updatedCard.id
-                ? { ...currentCard, ...updatedCard }
-                : currentCard
-            ),
-          }));
+    const success = await this.store.updateCard(
+      card.id,
+      title,
+      description || undefined
+    );
 
-          this.columns.set(updatedColumns);
-          this.closeEditCardModal();
-        },
-        error: () => {
-          this.errorMessage.set('La modification de la card a échoué.');
-          this.isUpdatingCard.set(false);
-        },
-      });
-  }
-
-  deleteCard(): void {
-    const card = this.editingCard();
-
-    if (!card) {
+    if (success) {
+      this.closeEditCardModal();
       return;
     }
 
-    const confirmed = confirm('Supprimer cette card ?');
+    this.isUpdatingCard.set(false);
+  }
+
+  async deleteCard(): Promise<void> {
+    const card = this.editingCard();
+
+    if (!card || this.isUpdatingCard()) {
+      return;
+    }
+
+    const confirmed = confirm('Delete this card?');
     if (!confirmed) {
       return;
     }
 
     this.isUpdatingCard.set(true);
-    this.errorMessage.set(null);
+    this.store.errorMessage.set(null);
 
-    this.cardService.deleteCard(card.id).subscribe({
-      next: () => {
-        const updatedColumns = this.columns().map((column) => ({
-          ...column,
-          cards: column.cards.filter((c) => c.id !== card.id),
-        }));
+    const success = await this.store.deleteCard(card.id);
 
-        this.columns.set(updatedColumns);
-        this.closeEditCardModal();
-      },
-      error: () => {
-        this.errorMessage.set('La suppression de la card a échoué.');
-        this.isUpdatingCard.set(false);
-      },
-    });
+    if (success) {
+      this.closeEditCardModal();
+      return;
+    }
+
+    this.isUpdatingCard.set(false);
   }
 
-  dropCard(event: CdkDragDrop<BoardCard[]>, targetColumn: BoardColumn): void {
-    const previousState = this.cloneColumns(this.columns());
+  async dropColumn(event: CdkDragDrop<BoardColumn[]>): Promise<void> {
+    if (event.previousIndex === event.currentIndex) {
+      return;
+    }
 
-    if (event.previousContainer === event.container) {
+    const previousColumns = this.store.cloneColumnOrder(this.columns());
+    const workingColumns = this.store.cloneColumnOrder(this.columns());
+
+    moveItemInArray(workingColumns, event.previousIndex, event.currentIndex);
+
+    const recomputedColumns =
+      this.store.recomputeColumnPositions(workingColumns);
+    const movedColumn = recomputedColumns[event.currentIndex];
+
+    if (!movedColumn) {
+      return;
+    }
+
+    await this.store.moveColumn(
+      recomputedColumns,
+      movedColumn.id,
+      event.currentIndex,
+      previousColumns
+    );
+  }
+
+  async dropCard(
+    event: CdkDragDrop<BoardCard[]>,
+    targetColumn: BoardColumn
+  ): Promise<void> {
+    const previousColumns = this.store.cloneColumns(this.columns());
+    const workingColumns = this.store.cloneColumns(this.columns());
+
+    const sourceColumn = workingColumns.find(
+      (column) => this.getDropListId(column.id) === event.previousContainer.id
+    );
+    const destinationColumn = workingColumns.find(
+      (column) => column.id === targetColumn.id
+    );
+
+    if (!sourceColumn || !destinationColumn) {
+      return;
+    }
+
+    if (sourceColumn.id === destinationColumn.id) {
       moveItemInArray(
-        event.container.data,
+        destinationColumn.cards,
         event.previousIndex,
         event.currentIndex
       );
     } else {
       transferArrayItem(
-        event.previousContainer.data,
-        event.container.data,
+        sourceColumn.cards,
+        destinationColumn.cards,
         event.previousIndex,
         event.currentIndex
       );
     }
 
-    this.recomputeColumnsState();
-    this.columns.set([...this.columns()]);
-
-    const movedCard = event.container.data[event.currentIndex];
+    const recomputedColumns = this.store.recomputeColumnsState(workingColumns);
+    const movedCard = destinationColumn.cards[event.currentIndex];
 
     if (!movedCard) {
-      this.columns.set(previousState);
       return;
     }
 
-    this.cardService
-      .moveCard(movedCard.id, {
-        toColumnId: targetColumn.id,
-        position: event.currentIndex,
-      })
-      .subscribe({
-        next: () => {
-          this.errorMessage.set(null);
-        },
-        error: () => {
-          this.columns.set(previousState);
-          this.errorMessage.set('Le déplacement de la card a échoué.');
-        },
-      });
+    await this.store.moveCard(
+      recomputedColumns,
+      movedCard.id,
+      targetColumn.id,
+      event.currentIndex,
+      previousColumns
+    );
   }
 
   goBack(): void {
     this.router.navigate(['/workspaces']);
-  }
-
-  private recomputeColumnsState(): void {
-    const updatedColumns = this.columns().map((column) => ({
-      ...column,
-      cards: column.cards.map((card, index) => ({
-        ...card,
-        position: index,
-        columnId: column.id,
-      })),
-    }));
-
-    this.columns.set(updatedColumns);
-  }
-
-  private cloneColumns(columns: BoardColumn[]): BoardColumn[] {
-    return columns.map((column) => ({
-      ...column,
-      cards: column.cards.map((card) => ({ ...card })),
-    }));
   }
 }

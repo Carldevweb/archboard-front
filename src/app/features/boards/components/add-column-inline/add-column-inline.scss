@@ -1,0 +1,61 @@
+:host {
+    display: block;
+    width: 320px;
+    flex: 0 0 320px;
+}
+
+.add-column-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f4f5f7;
+    box-shadow: 0 1px 2px rgba(9, 30, 66, 0.15);
+}
+
+.add-column-inline__input {
+    width: 100%;
+    border: 1px solid #d0d4db;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.add-column-inline__input:focus {
+    border-color: #0c66e4;
+    box-shadow: 0 0 0 2px rgba(12, 102, 228, 0.15);
+}
+
+.add-column-inline__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.add-column-inline__submit,
+.add-column-inline__cancel {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.add-column-inline__submit {
+    background: #0c66e4;
+    color: #fff;
+}
+
+.add-column-inline__submit:disabled,
+.add-column-inline__cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.add-column-inline__cancel {
+    background: #e9edf2;
+    color: #172b4d;
+}

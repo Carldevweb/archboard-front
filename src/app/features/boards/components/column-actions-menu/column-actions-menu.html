@@ -1,0 +1,12 @@
+<div class="column-actions-menu">
+  <button type="button" class="column-actions-menu__trigger" (click)="toggleMenu()" aria-label="Column actions">
+    ⋮
+  </button>
+
+  @if (isOpen()) {
+  <div class="column-actions-menu__panel">
+    <button type="button" (click)="onRename()">Rename</button>
+    <button type="button" class="danger" (click)="onDelete()">Delete</button>
+  </div>
+  }
+</div>

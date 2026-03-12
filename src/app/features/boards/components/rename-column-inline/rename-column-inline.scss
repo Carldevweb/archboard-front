@@ -1,0 +1,32 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.rename-column-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rename-column-inline input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #d0d4db;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+}
+
+.rename-column-inline__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rename-column-inline__actions button {
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit;
+    cursor: pointer;
+}
