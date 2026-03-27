@@ -66,15 +66,17 @@ export class RegisterPageComponent {
 
     this.authService.register({ email, password }).subscribe({
       next: () => {
-        this.successMessage.set('Account created successfully. You can now sign in.');
+        this.successMessage.set('Account created successfully.');
         this.isSubmitting.set(false);
 
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 1200);
       },
-      error: () => {
-        this.errorMessage.set('Registration failed.');
+      error: (error) => {
+        this.errorMessage.set(
+          error?.error?.message ?? 'Registration failed.'
+        );
         this.isSubmitting.set(false);
       },
     });

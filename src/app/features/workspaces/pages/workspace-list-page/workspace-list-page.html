@@ -1,33 +1,81 @@
 <section class="workspace-page">
-    <header class="workspace-page__header">
+  <header class="workspace-page__hero">
+    <div class="workspace-page__hero-content">
+      <span class="workspace-page__eyebrow">ArchBoard</span>
+      <h1>Workspaces</h1>
+      <p>
+        Gère tes espaces de travail et accède rapidement à tes boards.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="workspace-page__logout-button"
+      (click)="logout()"
+    >
+      Déconnexion
+    </button>
+  </header>
+
+  <section class="workspace-page__create-section">
+    <app-create-workspace-form
+      (workspaceCreated)="addWorkspace($event)"
+    ></app-create-workspace-form>
+  </section>
+
+  @if (isLoading()) {
+    <section class="workspace-state-card">
+      <div class="workspace-state-card__icon">…</div>
+      <h2>Chargement des workspaces</h2>
+      <p>Patiente un instant pendant la récupération de tes espaces de travail.</p>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="workspace-state-card workspace-state-card--error">
+      <div class="workspace-state-card__icon">!</div>
+      <h2>Une erreur est survenue</h2>
+      <p>{{ errorMessage() }}</p>
+    </section>
+  } @else if (workspaces().length === 0) {
+    <section class="workspace-state-card">
+      <div class="workspace-state-card__icon">+</div>
+      <h2>Aucun workspace pour le moment</h2>
+      <p>Crée ton premier workspace pour commencer à organiser tes boards.</p>
+    </section>
+  } @else {
+    <section class="workspace-section">
+      <div class="workspace-section__header">
         <div>
-            <h1>Workspaces</h1>
-            <p>Liste de tes espaces de travail.</p>
+          <h2>Mes workspaces</h2>
+          <p>{{ workspaces().length }} espace(s) disponible(s).</p>
         </div>
+      </div>
 
-        <button type="button" (click)="logout()">Déconnexion</button>
-    </header>
-
-    @if (isLoading()) {
-    <p>Chargement...</p>
-    } @else if (errorMessage()) {
-    <div class="error-box">
-        {{ errorMessage() }}
-    </div>
-    } @else if (workspaces().length === 0) {
-    <p>Aucun workspace trouvé.</p>
-    } @else {
-    <div class="workspace-grid">
+      <div class="workspace-grid">
         @for (workspace of workspaces(); track workspace.id) {
-        <article class="workspace-card">
-            <h2>{{ workspace.name }}</h2>
-            <p>{{ workspace.description || 'Aucune description.' }}</p>
+          <article class="workspace-card">
+            <div class="workspace-card__top">
+              <div class="workspace-card__badge">WS</div>
 
-            <button type="button" (click)="openBoards(workspace.id)">
-                Voir les boards
-            </button>
-        </article>
+              <div class="workspace-card__content">
+                <h3>{{ workspace.name }}</h3>
+                <p>
+                  {{ workspace.description || 'Aucune description disponible pour ce workspace.' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="workspace-card__footer">
+              <button
+                type="button"
+                class="workspace-card__button"
+                (click)="openBoards(workspace.id)"
+              >
+                Ouvrir les boards
+              </button>
+            </div>
+          </article>
         }
-    </div>
-    }
+      </div>
+    </section>
+  }
 </section>

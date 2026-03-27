@@ -1,0 +1,29 @@
+<section class="create-workspace-card">
+  <div class="create-workspace-card__header">
+    <div>
+      <span class="create-workspace-card__eyebrow">Nouveau workspace</span>
+      <h2>Créer un espace de travail</h2>
+      <p>Donne un nom clair à ton workspace pour organiser tes boards.</p>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="create-workspace-card__alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="create-workspace-card__form">
+    <input
+      type="text"
+      placeholder="Ex. Projet client, Produit, Perso..."
+      [ngModel]="name()"
+      (ngModelChange)="updateName($event)"
+      (keydown.enter)="create()"
+    />
+
+    <button type="button" (click)="create()" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'Création...' : 'Créer le workspace' }}
+    </button>
+  </div>
+</section>

@@ -21,12 +21,12 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  token: string;
+      token: string;
   newPassword: string;
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
 }
 
 export interface MeResponse {
@@ -50,7 +50,10 @@ export class AuthService {
       .post<AuthResponse>(`${environment.apiUrl}/auth/login`, payload)
       .pipe(
         tap((response) => {
-          this.setToken(response.token);
+
+          console.log(response);
+
+          this.setToken(response.accessToken);
         })
       );
   }

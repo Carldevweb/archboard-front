@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Board } from '../../models/board.model';
 import { BoardService } from '../../services/board.service';
 
 @Component({
   selector: 'app-board-list-page',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './board-list-page.html',
   styleUrl: './board-list-page.scss',
 })
@@ -51,7 +51,15 @@ export class BoardListPage implements OnInit {
     });
   }
 
+  handleBoardCreated(board: Board): void {
+    this.boards.update((boards) => [board, ...boards]);
+  }
+
   goBack(): void {
     this.router.navigate(['/workspaces']);
+  }
+
+  openBoard(boardId: number): void {
+    this.router.navigate(['/boards', boardId]);
   }
 }

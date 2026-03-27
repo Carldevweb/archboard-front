@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { AuthService } from '../../../../core/auth/services/auth.service';
+import { CreateWorkspaceFormComponent } from '../../components/create-workspace-form/create-workspace-form';
 import { Workspace } from '../../models/workspace.model';
 import { WorkspaceService } from '../../services/workspace.service';
 
 @Component({
   selector: 'app-workspace-list-page',
-  imports: [CommonModule],
+  imports: [CommonModule, CreateWorkspaceFormComponent],
   templateUrl: './workspace-list-page.html',
   styleUrl: './workspace-list-page.scss',
 })
@@ -42,6 +44,10 @@ export class WorkspaceListPage implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  addWorkspace(workspace: Workspace): void {
+    this.workspaces.update((list) => [workspace, ...list]);
   }
 
   logout(): void {

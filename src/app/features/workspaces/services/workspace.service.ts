@@ -11,6 +11,13 @@ import { Workspace } from '../models/workspace.model';
 export class WorkspaceService {
   private readonly http = inject(HttpClient);
 
+  create(name: string) {
+    return this.http.post<Workspace>(
+      `${environment.apiUrl}/workspaces`,
+      { name }
+    );
+  }
+
   getAll(): Observable<Workspace[]> {
     return this.http.get<Workspace[]>(`${environment.apiUrl}/workspaces`);
   }
@@ -18,4 +25,6 @@ export class WorkspaceService {
   getById(id: number): Observable<Workspace> {
     return this.http.get<Workspace>(`${environment.apiUrl}/workspaces/${id}`);
   }
+
+
 }

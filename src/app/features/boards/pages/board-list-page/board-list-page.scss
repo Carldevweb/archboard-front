@@ -1,82 +1,16 @@
-:host {
-    display: block;
-    min-height: 100vh;
-    background: #f4f7fb;
-}
+@use '../../../../core/ui/styles/page-base';
 
-.board-page {
-    padding: 32px;
-}
-
-.board-page__header {
+.board-page__create-form {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-
-    h1 {
-        margin: 0 0 8px;
-        font-size: 28px;
-    }
-
-    p {
-        margin: 0;
-        color: #5f6b7a;
-    }
-
-    button {
-        height: 42px;
-        border: 0;
-        border-radius: 10px;
-        padding: 0 16px;
-        background: #111827;
-        color: #ffffff;
-        cursor: pointer;
-    }
+    gap: 12px;
 }
 
-.board-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
+.board-page__create-form-input {
+    flex: 1;
 }
 
-.board-card {
-    background: #ffffff;
-    border: 1px solid #e7ebf3;
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
-
-    h2 {
-        margin: 0 0 10px;
-        font-size: 20px;
+@media (max-width: 768px) {
+    .board-page__create-form {
+        flex-direction: column;
     }
-
-    p {
-        margin: 0 0 16px;
-        color: #5f6b7a;
-    }
-
-    a {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 40px;
-        padding: 0 14px;
-        border-radius: 10px;
-        background: #111827;
-        color: #ffffff;
-        text-decoration: none;
-        font-weight: 600;
-    }
-}
-
-.error-box {
-    border: 1px solid #f3c7c7;
-    background: #fdecec;
-    color: #b42318;
-    border-radius: 10px;
-    padding: 12px;
 }

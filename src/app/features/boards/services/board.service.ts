@@ -11,6 +11,13 @@ import { Board } from '../models/board.model';
 export class BoardService {
   private readonly http = inject(HttpClient);
 
+  create(workspaceId: number, name: string) {
+    return this.http.post<Board>(
+      `${environment.apiUrl}/workspaces/${workspaceId}/boards`,
+      { name }
+    );
+  }
+
   getByWorkspace(workspaceId: number): Observable<Board[]> {
     return this.http.get<Board[]>(
       `${environment.apiUrl}/workspaces/${workspaceId}/boards`

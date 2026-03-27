@@ -1,0 +1,18 @@
+<section class="create-board">
+    <h2>Créer un board</h2>
+
+    @if (errorMessage()) {
+    <div class="error-box">
+        {{ errorMessage() }}
+    </div>
+    }
+
+    <div class="create-board__form">
+        <input type="text" placeholder="Nom du board" [ngModel]="name()" (ngModelChange)="updateName($event)"
+            (keydown.enter)="create()" />
+
+        <button type="button" (click)="create()" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Création...' : 'Créer' }}
+        </button>
+    </div>
+</section>

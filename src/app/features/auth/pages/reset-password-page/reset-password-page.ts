@@ -1,83 +1,74 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../../core/auth/services/auth.service';
 
 @Component({
   selector: 'app-reset-password-page',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './reset-password-page.html',
   styleUrl: './reset-password-page.scss',
 })
 export class ResetPasswordPageComponent {
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
-
-  readonly password = signal('');
-  readonly confirmPassword = signal('');
 
   readonly isSubmitting = signal(false);
   readonly successMessage = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
 
-  updatePassword(value: string): void {
-    this.password.set(value);
-  }
-
-  updateConfirmPassword(value: string): void {
-    this.confirmPassword.set(value);
-  }
+  readonly form = this.fb.nonNullable.group({
+    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    confirmPassword: ['', [Validators.required]],
+  });
 
   submit(): void {
-    const token = this.route.snapshot.queryParamMap.get('token')?.trim() ?? '';
-    const password = this.password().trim();
-    const confirmPassword = this.confirmPassword().trim();
-
-    if (this.isSubmitting()) {
+    if (this.form.invalid || this.isSubmitting()) {
+      this.form.markAllAsTouched();
       return;
     }
+
+    const token = this.route.snapshot.queryParamMap.get('token');
+    const { newPassword, confirmPassword } = this.form.getRawValue();
 
     if (!token) {
-      this.errorMessage.set('Reset token is missing.');
+      this.errorMessage.set('Token de réinitialisation manquant.');
       return;
     }
 
-    if (!password || !confirmPassword) {
-      this.errorMessage.set('All fields are required.');
-      return;
-    }
-
-    if (password.length < 8) {
-      this.errorMessage.set('Password must contain at least 8 characters.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      this.errorMessage.set('Passwords do not match.');
+    if (newPassword !== confirmPassword) {
+      this.errorMessage.set('Les mots de passe ne correspondent pas.');
       return;
     }
 
     this.isSubmitting.set(true);
-    this.errorMessage.set(null);
     this.successMessage.set(null);
+    this.errorMessage.set(null);
 
-    this.authService.resetPassword({ token, newPassword: password }).subscribe({
+    this.authService.resetPassword({ token, newPassword }).subscribe({
       next: () => {
-        this.successMessage.set('Password reset successfully.');
+        this.successMessage.set('Mot de passe réinitialisé avec succès.');
         this.isSubmitting.set(false);
 
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 1200);
       },
-      error: () => {
-        this.errorMessage.set('Password reset failed.');
+      error: (error) => {
+        this.errorMessage.set(
+          error?.error?.message ??
+            'Impossible de réinitialiser le mot de passe.'
+        );
         this.isSubmitting.set(false);
       },
     });
   }
-} 
+}

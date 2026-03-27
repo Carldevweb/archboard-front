@@ -1,31 +1,71 @@
-<section class="board-page">
-    <header class="board-page__header">
-        <div>
+<section class="page-shell">
+    <header class="page-header-card">
+        <div class="page-header-card__content">
+            <span class="page-eyebrow">ArchBoard</span>
             <h1>Boards</h1>
-            <p>Workspace #{{ workspaceId() }}</p>
+            <p>
+                @if (workspaceId()) {
+                Workspace #{{ workspaceId() }}
+                } @else {
+                Workspace
+                }
+            </p>
         </div>
 
-        <button type="button" (click)="goBack()">Retour aux workspaces</button>
+        <button type="button" class="page-secondary-button" (click)="goBack()">
+            Retour aux workspaces
+        </button>
     </header>
 
-    @if (isLoading()) {
-    <p>Chargement...</p>
-    } @else if (errorMessage()) {
-    <div class="error-box">
-        {{ errorMessage() }}
-    </div>
-    } @else if (boards().length === 0) {
-    <p>Aucun board trouvé.</p>
-    } @else {
-    <div class="board-grid">
-        @for (board of boards(); track board.id) {
-        <article class="board-card">
-            <h2>{{ board.name }}</h2>
-            <p>{{ board.description || 'Aucune description.' }}</p>
+    <section class="page-panel">
+        <div class="page-panel__header">
+            <h2>Créer un board</h2>
+            <p>Le formulaire de création n'est pas encore branché sur cette version de la page.</p>
+        </div>
 
-            <a [routerLink]="['/boards', board.id]">Ouvrir le board</a>
+        <div class="board-page__create-form">
+            <input class="page-text-input board-page__create-form-input" type="text" placeholder="Nom du board"
+                disabled />
+
+            <button type="button" class="page-action-button" disabled>
+                Créer
+            </button>
+        </div>
+    </section>
+
+    @if (isLoading()) {
+    <section class="page-panel">
+        <p class="page-card__text">Chargement des boards...</p>
+    </section>
+    } @else if (errorMessage()) {
+    <section class="page-alert">
+        {{ errorMessage() }}
+    </section>
+    } @else if (boards().length === 0) {
+    <section class="page-panel">
+        <div class="page-panel__header">
+            <h2>Aucun board</h2>
+            <p>Ce workspace ne contient encore aucun board.</p>
+        </div>
+    </section>
+    } @else {
+    <section class="page-grid">
+        @for (board of boards(); track board.id) {
+        <article class="page-card">
+            <div>
+                <h3 class="page-card__title">{{ board.name }}</h3>
+                <p class="page-card__text">
+                    {{ board.description || 'Aucune description.' }}
+                </p>
+            </div>
+
+            <div class="page-card__footer">
+                <button type="button" class="page-action-button" (click)="openBoard(board.id)">
+                    Ouvrir le board
+                </button>
+            </div>
         </article>
         }
-    </div>
+    </section>
     }
 </section>

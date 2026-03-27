@@ -9,8 +9,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const token = tokenService.getToken();
 
   const isApiRequest = request.url.startsWith(environment.apiUrl);
-  const isAuthRequest =
-    request.url.includes('/auth/login') || request.url.includes('/auth/register');
+  const isAuthRequest = request.url.startsWith(`${environment.apiUrl}/auth/`);
 
   if (!isApiRequest || isAuthRequest || !token) {
     return next(request);
